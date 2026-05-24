@@ -1,51 +1,49 @@
-# Servicio Mock de Modelo MLOps Clínico
+# Servicio Mock para Prediccion de Enfermedades Huerfanas
 
-Esta solución implementa un servicio web REST y una página web sencilla para simular la respuesta de un modelo de machine learning clínico. No entrena un modelo real; usa una función mock que recibe síntomas y una criticidad indicada por el médico.
+Este repositorio contiene un servicio web mock que simula la respuesta de un modelo predictivo de inteligencia artificial para apoyar la identificacion temprana de enfermedades huerfanas a partir de sintomas reportados por un paciente.
 
-## Respuestas del modelo
+## Autor
 
-La función puede retornar estos estados:
+Jose Milciades Ordoñez Argote
 
-- `NO ENFERMO`
-- `ENFERMEDAD LEVE`
-- `ENFERMEDAD AGUDA`
-- `ENFERMEDAD CRÓNICA`
+## Problema
 
-## Construir la imagen Docker
+Las enfermedades huerfanas o raras suelen ser dificiles de diagnosticar porque tienen baja prevalencia, sintomas variados y, en muchos casos, se confunden con enfermedades mas comunes. Esto puede retrasar la atencion oportuna del paciente.
 
-Desde esta carpeta:
+En un contexto clinico, contar con un modelo predictivo de IA puede ayudar a los medicos a priorizar casos, analizar combinaciones de sintomas y generar una alerta preliminar sobre el posible nivel de criticidad. Este proyecto no implementa un modelo real, sino un servicio simulado para practicar el despliegue, consumo y empaquetado de un componente de inferencia dentro de un flujo MLOps.
 
-```bash
-docker build -t mock-ml-clinico:1.0 .
-```
+## Proposito
 
-## Ejecutar el contenedor
+El objetivo del proyecto es exponer un servicio REST y una interfaz web sencilla que permitan enviar sintomas y recibir una respuesta simulada con:
 
-```bash
-docker run --rm -p 8000:8000 mock-ml-clinico:1.0
-```
+- Estado estimado del paciente.
+- Criticidad de la posible condicion.
+- Sintomas evaluados.
+- Nivel de confianza simulado.
+- Mensaje de recomendacion clinica general.
 
-El contenedor usa Linux mediante la imagen base `python:3.12-slim`.
+La logica actual es deterministica y se encuentra en `app.py`. Sirve como base para reemplazar posteriormente el mock por un modelo entrenado real.
 
-## Usar la página web
-
-Abra en el navegador:
+## Estructura del repositorio
 
 ```text
-http://localhost:8000
+.
+├── app.py              # Servidor HTTP, endpoints y logica mock de prediccion
+├── Dockerfile          # Definicion de la imagen Docker del servicio
+├── README.md           # Documentacion del proyecto
+├── static/
+│   ├── index.html      # Interfaz web para consultar el servicio
+│   └── styles.css      # Estilos de la interfaz
+└── .dockerignore       # Archivos excluidos del build Docker
 ```
 
-Ingrese al menos tres síntomas y seleccione la criticidad: `sano`, `leve`, `aguda` o `cronica`.
+## Endpoints
 
-## Consumir el servicio REST
+- `GET /`: interfaz web para ingresar sintomas y criticidad.
+- `GET /health`: verificacion del estado del servicio.
+- `POST /api/predict`: endpoint REST para obtener una prediccion simulada.
 
-Endpoint:
-
-```text
-POST /api/predict
-```
-
-Ejemplo:
+Ejemplo de consumo:
 
 ```bash
 curl -X POST http://localhost:8000/api/predict \
@@ -65,8 +63,29 @@ Respuesta esperada:
 }
 ```
 
-## Endpoints disponibles
+## Ejecucion con Docker
 
-- `GET /`: página web para el médico.
-- `GET /health`: verificación de estado del servicio.
-- `POST /api/predict`: predicción simulada del modelo.
+Construir la imagen:
+
+```bash
+docker build -t mock-ml-clinico:1.0 .
+```
+
+Ejecutar el contenedor:
+
+```bash
+docker run --rm -p 8000:8000 mock-ml-clinico:1.0
+```
+
+Abrir la aplicacion en:
+
+```text
+http://localhost:8000
+```
+
+## Notas
+
+- El servicio usa solo librerias estandar de Python.
+- La imagen base es `python:3.12-slim`.
+- La prediccion es simulada; no debe usarse para diagnostico medico real.
+- El proyecto esta pensado como base academica para practicar conceptos de MLOps, contenerizacion y exposicion de servicios de inferencia.
