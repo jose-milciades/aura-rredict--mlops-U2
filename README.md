@@ -111,6 +111,28 @@ Abrir la aplicacion en:
 http://localhost:8000
 ```
 
+## CI/CD
+
+El repositorio incluye un pipeline de GitHub Actions en `.github/workflows/ci-cd.yml` con dos eventos principales:
+
+- `pull_request` hacia `main`: comenta en el PR el inicio del pipeline y ejecuta validaciones del servicio.
+- `push` en `main`: ejecuta las validaciones del servicio para cada commit integrado en la rama principal y publica la imagen Docker en GitHub Packages.
+
+Las validaciones actuales compilan `app.py`, ejecutan pruebas unitarias y construyen la imagen Docker.
+
+La imagen publicada queda disponible en GitHub Container Registry:
+
+```text
+ghcr.io/jose-milciades/aura-rredict--mlops-u2:latest
+```
+
+Ejemplo de uso:
+
+```bash
+docker pull ghcr.io/jose-milciades/aura-rredict--mlops-u2:latest
+docker run --rm -p 8000:8000 ghcr.io/jose-milciades/aura-rredict--mlops-u2:latest
+```
+
 ## Notas
 
 - El servicio usa solo librerias estandar de Python.
