@@ -13,6 +13,7 @@ STATUS_BY_SEVERITY = {
     "leve": "ENFERMEDAD LEVE",
     "aguda": "ENFERMEDAD AGUDA",
     "cronica": "ENFERMEDAD CRÓNICA",
+    "terminal": "ENFERMEDAD TERMINAL",
 }
 
 ALIASES = {
@@ -24,6 +25,8 @@ ALIASES = {
     "cronico": "cronica",
     "crónica": "cronica",
     "crónico": "cronica",
+    "sintomas terminales": "terminal",
+    "enfermedad terminal": "terminal",
 }
 
 
@@ -41,7 +44,7 @@ def predict_mock(symptoms, severity):
 
     if normalized_severity not in STATUS_BY_SEVERITY:
         raise ValueError(
-            "La criticidad debe ser una de estas opciones: sano, leve, aguda o cronica."
+            "La criticidad debe ser una de estas opciones: sano, leve, aguda, cronica o terminal."
         )
 
     return {
@@ -59,6 +62,7 @@ def confidence_for(severity, symptoms):
         "leve": 0.82,
         "aguda": 0.88,
         "cronica": 0.91,
+        "terminal": 0.94,
     }[severity]
     symptom_bonus = min((len(symptoms) - 3) * 0.01, 0.04)
     return round(min(base_confidence + symptom_bonus, 0.99), 2)
@@ -70,6 +74,7 @@ def message_for(severity):
         "leve": "Se recomienda seguimiento y manejo sintomatico segun criterio medico.",
         "aguda": "Se recomienda priorizar valoracion clinica y descartar signos de alarma.",
         "cronica": "Se recomienda seguimiento especializado y revision de antecedentes.",
+        "terminal": "Se recomienda atencion prioritaria, confirmacion diagnostica y manejo integral del paciente.",
     }
     return messages[severity]
 

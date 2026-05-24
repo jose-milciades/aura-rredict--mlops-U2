@@ -24,6 +24,14 @@ El objetivo del proyecto es exponer un servicio REST y una interfaz web sencilla
 
 La logica actual es deterministica y se encuentra en `app.py`. Sirve como base para reemplazar posteriormente el mock por un modelo entrenado real.
 
+Actualmente el mock puede retornar cinco categorias:
+
+- `NO ENFERMO`
+- `ENFERMEDAD LEVE`
+- `ENFERMEDAD AGUDA`
+- `ENFERMEDAD CRÓNICA`
+- `ENFERMEDAD TERMINAL`
+
 ## Estructura del repositorio
 
 ```text
@@ -48,18 +56,18 @@ Ejemplo de consumo:
 ```bash
 curl -X POST http://localhost:8000/api/predict \
   -H "Content-Type: application/json" \
-  -d '{"severity":"aguda","symptoms":["fiebre","tos","dolor toracico"]}'
+  -d '{"severity":"terminal","symptoms":["fiebre","tos","dolor toracico"]}'
 ```
 
 Respuesta esperada:
 
 ```json
 {
-  "estado": "ENFERMEDAD AGUDA",
-  "criticidad": "aguda",
+  "estado": "ENFERMEDAD TERMINAL",
+  "criticidad": "terminal",
   "sintomas_evaluados": ["fiebre", "tos", "dolor toracico"],
-  "confianza": 0.88,
-  "mensaje": "Se recomienda priorizar valoracion clinica y descartar signos de alarma."
+  "confianza": 0.94,
+  "mensaje": "Se recomienda atencion prioritaria, confirmacion diagnostica y manejo integral del paciente."
 }
 ```
 
