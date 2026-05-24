@@ -45,33 +45,8 @@ jobs:
       - name: Validar sintaxis Python
         run: python -m py_compile app.py
 
-      - name: Probar logica del modelo mock
-        run: |
-          python - <<'PY'
-          from app import build_prediction_report, predict_mock, record_prediction
-          import os
-          import tempfile
-          from pathlib import Path
-
-          fd, path = tempfile.mkstemp(suffix=".csv")
-          os.close(fd)
-          Path(path).unlink(missing_ok=True)
-          os.environ["PREDICTIONS_FILE"] = path
-
-          import app
-          app.PREDICTIONS_FILE = Path(path)
-
-          prediction = predict_mock(["fiebre", "tos", "dolor"], "terminal")
-          assert prediction["estado"] == "ENFERMEDAD TERMINAL"
-          assert prediction["criticidad"] == "terminal"
-
-          record_prediction("terminal", prediction)
-          report = build_prediction_report()
-          assert report["total_predicciones"] == 1
-          assert report["predicciones_por_categoria"]["ENFERMEDAD TERMINAL"] == 1
-          assert len(report["ultimas_5_predicciones"]) == 1
-          assert report["fecha_ultima_prediccion"] is not None
-          PY
+      - name: Ejecutar pruebas unitarias
+        run: python -m unittest discover -s tests -v
 
       - name: Construir imagen Docker
         run: docker build -t mock-ml-clinico:ci .
