@@ -11,6 +11,7 @@ on:
 permissions:
   contents: read
   issues: write
+  packages: write
   pull-requests: write
 
 jobs:
@@ -67,3 +68,28 @@ jobs:
               issue_number: context.issue.number,
               body: 'CI/CD terminado con éxito.'
             })
+
+  publish-image:
+    name: Publicar imagen en GitHub Packages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Iniciar sesion en GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construir y publicar imagen Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/jose-milciades/aura-rredict--mlops-u2:latest
+            ghcr.io/jose-milciades/aura-rredict--mlops-u2:${{ github.sha }}
