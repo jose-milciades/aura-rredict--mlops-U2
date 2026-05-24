@@ -111,6 +111,15 @@ Abrir la aplicacion en:
 http://localhost:8000
 ```
 
+## CI/CD
+
+El repositorio incluye un pipeline de GitHub Actions en `.github/workflows/ci-cd.yml` con dos eventos principales:
+
+- `pull_request` hacia `main`: comenta en el PR el inicio del pipeline y ejecuta validaciones del servicio.
+- `push` en `main`: ejecuta las validaciones del servicio para cada commit integrado en la rama principal.
+
+Las validaciones actuales compilan `app.py`, prueban la logica mock y construyen la imagen Docker.
+
 ## Notas
 
 - El servicio usa solo librerias estandar de Python.
