@@ -1,0 +1,14 @@
+services:
+  mock-model-service:
+    build: .
+    image: mock-ml-clinico:3.0
+    ports:
+      - "8000:8000"
+    environment:
+      PREDICTIONS_FILE: /app/data/predictions.csv
+    volumes:
+      - mock-ml-predictions:/app/data
+
+volumes:
+  mock-ml-predictions:
+    external: true

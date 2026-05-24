@@ -37,18 +37,22 @@ Actualmente el mock puede retornar cinco categorias:
 ```text
 .
 ├── app.py              # Servidor HTTP, endpoints y logica mock de prediccion
+├── docker-compose.yml  # Ejecucion con volumen externo para el historico CSV
 ├── Dockerfile          # Definicion de la imagen Docker del servicio
 ├── README.md           # Documentacion del proyecto
 ├── static/
 │   ├── index.html      # Interfaz web para consultar el servicio
 │   └── styles.css      # Estilos de la interfaz
-└── .dockerignore       # Archivos excluidos del build Docker
+├── .dockerignore       # Archivos excluidos del build Docker
+└── data/               # Carpeta local ignorada para almacenar predicciones CSV
 ```
 
 ## Endpoints
 
 - `GET /`: interfaz web para ingresar sintomas y criticidad.
 - `GET /health`: verificacion del estado del servicio.
+- `GET /api/report`: reporte con conteos por categoria, ultimas 5 predicciones y fecha de la ultima prediccion.
+- `GET /api/predictions.csv`: descarga del archivo CSV con el historico de predicciones.
 - `POST /api/predict`: endpoint REST para obtener una prediccion simulada.
 
 Ejemplo de consumo:
@@ -85,6 +89,22 @@ Ejecutar el contenedor:
 docker run --rm -p 8000:8000 mock-ml-clinico:1.0
 ```
 
+Ejecutar el contenedor con un volumen externo para conservar el historico CSV:
+
+```bash
+docker volume create mock-ml-predictions
+docker run --rm -p 8000:8000 \
+  -v mock-ml-predictions:/app/data \
+  mock-ml-clinico:1.0
+```
+
+Tambien puede ejecutarse con Docker Compose:
+
+```bash
+docker volume create mock-ml-predictions
+docker compose up --build
+```
+
 Abrir la aplicacion en:
 
 ```text
@@ -95,5 +115,6 @@ http://localhost:8000
 
 - El servicio usa solo librerias estandar de Python.
 - La imagen base es `python:3.12-slim`.
+- Cada prediccion exitosa se guarda en `/app/data/predictions.csv`.
 - La prediccion es simulada; no debe usarse para diagnostico medico real.
 - El proyecto esta pensado como base academica para practicar conceptos de MLOps, contenerizacion y exposicion de servicios de inferencia.
