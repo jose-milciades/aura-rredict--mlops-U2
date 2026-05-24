@@ -46,25 +46,51 @@
             </form>
         </section>
 
-        <section class="result-card" aria-live="polite">
-            <p class="eyebrow">Respuesta</p>
-            <h2 id="state">Sin consulta</h2>
-            <dl>
-                <div>
-                    <dt>Confianza</dt>
-                    <dd id="confidence">--</dd>
+        <aside class="side">
+            <section class="result-card" aria-live="polite">
+                <p class="eyebrow">Respuesta</p>
+                <h2 id="state">Sin consulta</h2>
+                <dl>
+                    <div>
+                        <dt>Confianza</dt>
+                        <dd id="confidence">--</dd>
+                    </div>
+                    <div>
+                        <dt>Criticidad</dt>
+                        <dd id="severity">--</dd>
+                    </div>
+                    <div>
+                        <dt>Síntomas evaluados</dt>
+                        <dd id="symptoms">--</dd>
+                    </div>
+                </dl>
+                <p id="message" class="message">La respuesta aparecerá después de enviar el formulario.</p>
+            </section>
+
+            <section class="report-card" aria-live="polite">
+                <div class="report-heading">
+                    <div>
+                        <p class="eyebrow">Reporte</p>
+                        <h2>Estadísticas</h2>
+                    </div>
+                    <a class="download-button" href="/api/predictions.csv" download>Descargar CSV</a>
                 </div>
-                <div>
-                    <dt>Criticidad</dt>
-                    <dd id="severity">--</dd>
-                </div>
-                <div>
-                    <dt>Síntomas evaluados</dt>
-                    <dd id="symptoms">--</dd>
-                </div>
-            </dl>
-            <p id="message" class="message">La respuesta aparecerá después de enviar el formulario.</p>
-        </section>
+                <dl>
+                    <div>
+                        <dt>Total predicciones</dt>
+                        <dd id="total-predictions">0</dd>
+                    </div>
+                    <div>
+                        <dt>Última predicción</dt>
+                        <dd id="last-prediction-date">--</dd>
+                    </div>
+                </dl>
+                <h3>Por categoría</h3>
+                <ul id="category-totals" class="report-list"></ul>
+                <h3>Últimas 5</h3>
+                <ol id="recent-predictions" class="report-list"></ol>
+            </section>
+        </aside>
     </main>
 
     <script>
@@ -74,6 +100,62 @@
         const severity = document.querySelector("#severity");
         const symptoms = document.querySelector("#symptoms");
         const message = document.querySelector("#message");
+        const totalPredictions = document.querySelector("#total-predictions");
+        const lastPredictionDate = document.querySelector("#last-prediction-date");
+        const categoryTotals = document.querySelector("#category-totals");
+        const recentPredictions = document.querySelector("#recent-predictions");
+
+        function formatDate(value) {
+            if (!value) {
+                return "--";
+            }
+            return new Date(value).toLocaleString("es-CO");
+        }
+
+        function formatSymptoms(value) {
+            try {
+                return JSON.parse(value).join(", ");
+            } catch {
+                return value || "--";
+            }
+        }
+
+        function setListItems(list, items, renderItem) {
+            list.textContent = "";
+            items.forEach((item) => {
+                const element = document.createElement("li");
+                element.textContent = renderItem(item);
+                list.appendChild(element);
+            });
+        }
+
+        async function loadReport() {
+            const response = await fetch("/api/report");
+            const report = await response.json();
+
+            totalPredictions.textContent = report.total_predicciones;
+            lastPredictionDate.textContent = formatDate(report.fecha_ultima_prediccion);
+
+            setListItems(
+                categoryTotals,
+                Object.entries(report.predicciones_por_categoria),
+                ([category, total]) => `${category}: ${total}`
+            );
+
+            if (report.ultimas_5_predicciones.length === 0) {
+                recentPredictions.textContent = "";
+                const element = document.createElement("li");
+                element.textContent = "Sin predicciones registradas";
+                recentPredictions.appendChild(element);
+                return;
+            }
+
+            setListItems(
+                recentPredictions,
+                report.ultimas_5_predicciones,
+                (prediction) => `${formatDate(prediction.fecha_prediccion)} - ${prediction.estado_predicho} - ${formatSymptoms(prediction.sintomas)}`
+            );
+        }
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -109,7 +191,10 @@
             severity.textContent = result.criticidad;
             symptoms.textContent = result.sintomas_evaluados.join(", ");
             message.textContent = result.mensaje;
+            loadReport();
         });
+
+        loadReport();
     </script>
 </body>
 </html>
