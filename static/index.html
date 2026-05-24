@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Servicio Mock MLOps Clínico</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <main class="shell">
+        <section class="panel">
+            <div class="intro">
+                <p class="eyebrow">MLOps clínico</p>
+                <h1>Simulador de respuesta del modelo</h1>
+                <p>Ingrese al menos tres síntomas y seleccione la criticidad observada para consultar la respuesta simulada del modelo.</p>
+            </div>
+
+            <form id="diagnosis-form" class="form">
+                <label>
+                    Síntoma 1
+                    <input name="symptom_1" type="text" placeholder="Ej. fiebre" required>
+                </label>
+                <label>
+                    Síntoma 2
+                    <input name="symptom_2" type="text" placeholder="Ej. tos" required>
+                </label>
+                <label>
+                    Síntoma 3
+                    <input name="symptom_3" type="text" placeholder="Ej. fatiga" required>
+                </label>
+                <label>
+                    Síntoma adicional
+                    <input name="symptom_4" type="text" placeholder="Opcional">
+                </label>
+                <label>
+                    Criticidad
+                    <select name="severity" required>
+                        <option value="sano">Sano</option>
+                        <option value="leve">Síntomas leves</option>
+                        <option value="aguda">Síntomas agudos</option>
+                        <option value="cronica">Síntomas crónicos</option>
+                    </select>
+                </label>
+                <button type="submit">Consultar modelo</button>
+            </form>
+        </section>
+
+        <section class="result-card" aria-live="polite">
+            <p class="eyebrow">Respuesta</p>
+            <h2 id="state">Sin consulta</h2>
+            <dl>
+                <div>
+                    <dt>Confianza</dt>
+                    <dd id="confidence">--</dd>
+                </div>
+                <div>
+                    <dt>Criticidad</dt>
+                    <dd id="severity">--</dd>
+                </div>
+                <div>
+                    <dt>Síntomas evaluados</dt>
+                    <dd id="symptoms">--</dd>
+                </div>
+            </dl>
+            <p id="message" class="message">La respuesta aparecerá después de enviar el formulario.</p>
+        </section>
+    </main>
+
+    <script>
+        const form = document.querySelector("#diagnosis-form");
+        const state = document.querySelector("#state");
+        const confidence = document.querySelector("#confidence");
+        const severity = document.querySelector("#severity");
+        const symptoms = document.querySelector("#symptoms");
+        const message = document.querySelector("#message");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const data = new FormData(form);
+            const payload = {
+                severity: data.get("severity"),
+                symptoms: [
+                    data.get("symptom_1"),
+                    data.get("symptom_2"),
+                    data.get("symptom_3"),
+                    data.get("symptom_4")
+                ].filter(Boolean)
+            };
+
+            const response = await fetch("/api/predict", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (!response.ok) {
+                state.textContent = "Error";
+                confidence.textContent = "--";
+                severity.textContent = "--";
+                symptoms.textContent = "--";
+                message.textContent = result.error || "No fue posible obtener la respuesta.";
+                return;
+            }
+
+            state.textContent = result.estado;
+            confidence.textContent = `${Math.round(result.confianza * 100)}%`;
+            severity.textContent = result.criticidad;
+            symptoms.textContent = result.sintomas_evaluados.join(", ");
+            message.textContent = result.mensaje;
+        });
+    </script>
+</body>
+</html>
